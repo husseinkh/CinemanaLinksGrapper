@@ -1,0 +1,28 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "name": "Debug CinemanaLinksGrapper",
+            "program": "${workspaceFolder:CinemanaLinksGrapper}\\.build/debug/CinemanaLinksGrapper",
+            "args": [],
+            "cwd": "${workspaceFolder:CinemanaLinksGrapper}",
+            "preLaunchTask": "swift: Build Debug CinemanaLinksGrapper"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "name": "Release CinemanaLinksGrapper",
+            "program": "${workspaceFolder:CinemanaLinksGrapper}\\.build/release/CinemanaLinksGrapper",
+            "args": [],
+            "cwd": "${workspaceFolder:CinemanaLinksGrapper}",
+            "preLaunchTask": "swift: Build Release CinemanaLinksGrapper"
+        }
+    ]
+}
