@@ -6,7 +6,7 @@ import Foundation
     var resolution : VideoInfoElement.Resolution = .fullHD
 
 func fetchShowAndSave(showID : Int) {
-        if showID > 0 {
+        
             let folderULR = FileManager.default.urls(for: .moviesDirectory, in: .userDomainMask)[0].appendingPathComponent("Cinemana", isDirectory: true)
             print(folderULR)
             let cinemanaShowProcessor =  CinemanaShowProcessor(showID: showID,resolution: resolution ,renameFile: true , folderURL: folderULR) {  result in
@@ -18,10 +18,8 @@ func fetchShowAndSave(showID : Int) {
                
             }
             cinemanaShowProcessor.startProcess()
-        }
-        else {
-           // enter valid number
-        }
+        
+        
     }
     
     
@@ -29,8 +27,12 @@ func fetchShowAndSave(showID : Int) {
 
 
 
-print("Hello, world!")
 
-let theWitchershowID: Int = 327584
-fetchShowAndSave( showID:theWitchershowID)
+let TheWitcherBloodOriginID = 863872
+var showID: Int = 0
+print("Enter Show ID: ")
+if let showIDSTR = readLine() {
+    showID = Int(showIDSTR) ?? TheWitcherBloodOriginID
+}
+fetchShowAndSave( showID:showID)
 dispatchMain()

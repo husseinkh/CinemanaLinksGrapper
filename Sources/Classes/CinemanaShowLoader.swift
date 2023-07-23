@@ -21,9 +21,9 @@ public class CinemanaShowLoader {
     }
     
     public func fetchTVShowDetail() {
+        //EpisodeInfo
         
-        
-        var dict : [Int : CinemanaShow] = [:]
+        var dict : [Int : EpisodeInfo] = [:]
         
         fetchCinemanaShow(id: showID) { [weak self] result in
             
@@ -65,8 +65,10 @@ public class CinemanaShowLoader {
                                             dict[id]?.videoInfo = videoInfo
                                             detail.cinemanaShowTVBySeasons[season]?[index].videoInfo = videoInfo
                                     }
-                                    self?.dispatchGroup.leave()
+
                                     self?.dispatchSemaphore.signal()
+
+                                    self?.dispatchGroup.leave()
                                     
                                 }
                             }
@@ -84,9 +86,9 @@ public class CinemanaShowLoader {
                                             dict[id]?.subtitle = subtitle
                                             detail.cinemanaShowTVBySeasons[season]?[index].subtitle = subtitle
                                     }
-                                    
+                                     self?.dispatchSemaphore.signal()
+
                                     self?.dispatchGroup.leave()
-                                    self?.dispatchSemaphore.signal()
                                     
                                 }
                             }
@@ -106,9 +108,9 @@ public class CinemanaShowLoader {
                                             dict[id]?.skippingDurations = skippingDurations
                                             detail.cinemanaShowTVBySeasons[season]?[index].skippingDurations = skippingDurations
                                     }
-                                    
-                                    self?.dispatchGroup.leave()
                                     self?.dispatchSemaphore.signal()
+                                    self?.dispatchGroup.leave()
+                                   
                                     
                                 }
                             }
@@ -130,7 +132,7 @@ public class CinemanaShowLoader {
     }
     
     func fetchCinemanaShow(id : Int , completionHandler : @escaping (Result<CinemanaShowDetail , Error> ) -> Void ) {
-        getInfo(id: id, urlType: .allVideoInfo) { (result : Result<(CinemanaShow , Int) , Error> ) in
+        getInfo(id: id, urlType: .allVideoInfo) { (result : Result<(EpisodeInfo , Int) , Error> ) in
             switch (result) {
                     
                 case .failure(let error):
@@ -191,8 +193,8 @@ public class CinemanaShowLoader {
         }
     }
     
-    func fetchShowInfo(id : Int , completionHandler : @escaping (Result<CinemanaShow , Error> ) -> Void ) {
-        getInfo(id: id, urlType: .allVideoInfo) { (result : Result<(CinemanaShow , Int) , Error> ) in
+    func fetchShowInfo(id : Int , completionHandler : @escaping (Result<EpisodeInfo , Error> ) -> Void ) {
+        getInfo(id: id, urlType: .allVideoInfo) { (result : Result<(EpisodeInfo , Int) , Error> ) in
             switch (result) {
                 case .failure(let error):
                     completionHandler(Result.failure(error))

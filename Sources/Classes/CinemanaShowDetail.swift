@@ -24,7 +24,7 @@ public struct CinemanaShowDetail {
         self.episodes = episodes
     }
     
-    var filmShow : CinemanaShow? {
+    var filmShow : EpisodeInfo? {
         if (showKind == .film) {
             return cinemanaShowTVBySeasons[0]?.first
         }

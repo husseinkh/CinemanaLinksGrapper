@@ -15,7 +15,11 @@ class CinemanaShowProcessor : CinemanaShowDelagate {
     let renameFileReady : Bool
     let downloadingHandler : DownloadingHandler
     let resolution : VideoInfoElement.Resolution
-    init(showID : Int ,resolution : VideoInfoElement.Resolution = .hd , renameFile : Bool , folderURL : URL = FileManager.default.homeDirectoryForCurrentUser , downloadingHandler : @escaping DownloadingHandler) {
+
+    // init(showID : Int,  downloadingHandler : @escaping DownloadingHandler) {
+
+    // }
+    init(showID : Int , resolution : VideoInfoElement.Resolution = .hd , renameFile : Bool , folderURL : URL = FileManager.default.homeDirectoryForCurrentUser , downloadingHandler : @escaping DownloadingHandler) {
         self.renameFileReady = renameFile
         cinemanaShowLoader = CinemanaShowLoader(showID: showID )
         self.folderURL = folderURL
@@ -69,10 +73,7 @@ class CinemanaShowProcessor : CinemanaShowDelagate {
                     
                     do {
                         
-                        
                         try jsonFileNamesCoding.write(to: folderURL.appendingPathComponent("fileNameEncoding").appendingPathExtension("json"), atomically: true, encoding: .utf8)
-                        
-                        
                         
                         try fileURLs.write(to: folderURL.appendingPathComponent("filesURL").appendingPathExtension("txt"), atomically: true, encoding: .utf8)
                         
@@ -83,17 +84,17 @@ class CinemanaShowProcessor : CinemanaShowDelagate {
                     }
                     
                     if renameFileReady {
-                        renameFileName(cinemanaTVShows: cinemanaTVShows , season: 0, resolution: resolution)
+                        renameFileName(cinemanaTVShows: cinemanaTVShows , seasonNo: 0, resolution: resolution)
                     }
-                }
+                } // end show kind is film
                 else {
-                    for (season ,cinemanaTVShows) in cinemanaShowDetail.cinemanaShowTVBySeasons {
+                    for (seasonNo ,cinemanaTVShows) in cinemanaShowDetail.cinemanaShowTVBySeasons {
                         let jsonFileNamesCoding = jsonFileNameCoding(cinemanaTVShows: cinemanaTVShows , resolution: resolution)
                         let fileURLs = filesURL(cinemanaTVShows: cinemanaTVShows , resolution: resolution)
                         
                         do {
                             
-                            let seasonfolderURL = folderURL.appendingPathComponent("\(season)", isDirectory: true)
+                            let seasonfolderURL = folderURL.appendingPathComponent("\(seasonNo)", isDirectory: true)
                             if !FileManager.default.fileExists(atPath: seasonfolderURL.path) {
                                 print("Creating Folder for the Show")
                                 try? FileManager.default.createDirectory(at: seasonfolderURL, withIntermediateDirectories: true, attributes: nil)
@@ -109,7 +110,7 @@ class CinemanaShowProcessor : CinemanaShowDelagate {
                         }
                         
                         if renameFileReady {
-                            renameFileName(cinemanaTVShows: cinemanaTVShows , season: season , resolution: resolution)
+                            renameFileName(cinemanaTVShows: cinemanaTVShows , seasonNo: seasonNo , resolution: resolution)
                         }
                         
                     }
@@ -120,41 +121,7 @@ class CinemanaShowProcessor : CinemanaShowDelagate {
         } // end switch
     }
     
-    
-    func htmlFormat(cinemanaTVShow : CinemanaTVShow) -> String {
-        var htmlStr = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-    <title> \(cinemanaTVShow[0].enTitle) </title>
-    </head>
-    <body>
-    <h1> \(cinemanaTVShow[0].enTitle)</h1>
-    """
-        for info in cinemanaTVShow {
-            if  let highestResolution = info.highestResolutionVideo {
-                
-                htmlStr.append("""
-                <p><a href="\(highestResolution.videoURL)">Season \(info.seasonNo) Episode \(info.episodeNo) Video</a></p>
-                """)
-                // print(highestResolution.videoURL)
-                if let translationFile = info.subtitle?.arTranslationFilePath {
-                    htmlStr.append("""
-                   <p><a href="\(translationFile)">Season\(info.seasonNo) Episode \(info.episodeNo) Arabic Subtitle</a></p>
-               """)
-                }
-            }
-            
-        }
-        
-        htmlStr.append("""
-            </body>
-            </html>
-            """)
-        
-        return htmlStr
-    }
-    
+ 
     
     func saveFileURLS(to : URL, cinemanaTVShow : CinemanaTVShow , resolution : VideoInfoElement.Resolution) {
         
@@ -218,11 +185,11 @@ class CinemanaShowProcessor : CinemanaShowDelagate {
     }
     
     
-    func filesURL(cinemanaTVShows : CinemanaTVShow , bySeason : Bool) -> [String : String] {
+    func filesURL(cinemanaTVShows : CinemanaTVShow , bySeason : Bool) -> [Int : String] {
         var urlsStr = ""
-        var filesURLBySeason : [String : String] = [:]
+        var filesURLBySeason : [Int : String] = [:]
         for cinemanaTVShow in cinemanaTVShows {
-            urlsStr = filesURLBySeason[cinemanaTVShow.season] ?? ""
+            urlsStr = filesURLBySeason[cinemanaTVShow.seasonNo] ?? ""
             if  let highestResolution = cinemanaTVShow.highestResolutionVideo {
                 urlsStr.append(highestResolution.videoURL)
                 urlsStr.append("\n")
@@ -231,31 +198,18 @@ class CinemanaShowProcessor : CinemanaShowDelagate {
                 urlsStr.append(translationFile)
                 urlsStr.append("\n")
             }
-            filesURLBySeason[cinemanaTVShow.season] = urlsStr
+            filesURLBySeason[cinemanaTVShow.seasonNo] = urlsStr
         }
         
         return filesURLBySeason
     }
     func jsonFileNameCoding(cinemanaTVShows : CinemanaTVShow, resolution : VideoInfoElement.Resolution = .fullHD) -> String {
         
-        let episodesInfo : EpisodeInfo = cinemanaTVShows.map {
-            var transcoddeFileName : String? = $0.highestResolutionVideo?.transcoddedFileName
-            if let hd = $0.videoInfo?.first(where: { videoInfoElement in
-                videoInfoElement.resolution == resolution
-            })
-            {
-            transcoddeFileName = hd.transcoddedFileName
-            }
-            
-            
-            let epispdeInfoElement = EpisodeInfoElement(showName: $0.enTitle.trimmingCharacters(in: .whitespacesAndNewlines), episodeNo: $0.episodeNumber, seasonNo: $0.season, transcoddedFileName: transcoddeFileName, arTranslationFile: $0.subtitle?.arTranslationFile , skippingDurations: $0.skippingDurations)
-            return epispdeInfoElement
-        }
+        let episodesInfo  = cinemanaTVShows.toEpisodesInfo(resolution: resolution)
         do {
             let jsonData = try JSONEncoder().encode(episodesInfo)
             guard let jsonStr = String(data: jsonData, encoding: .utf8) else { return "" }
             return jsonStr
-            
         }
         catch {
             print(error.localizedDescription)
@@ -265,14 +219,14 @@ class CinemanaShowProcessor : CinemanaShowDelagate {
     }
     
     
-    func renameFileName(cinemanaTVShows : CinemanaTVShow , season : Int = 0 , resolution : VideoInfoElement.Resolution = .fullHD) {
+    func renameFileName(cinemanaTVShows : CinemanaTVShow , seasonNo : Int = 0 , resolution : VideoInfoElement.Resolution = .fullHD) {
         
         
         let showTitle = cinemanaTVShows[0].enTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         
         var subFolderPath = "Videos/\(showTitle)"
-        if (season > 0) {
-            subFolderPath += "/\(season)"
+        if (seasonNo > 0) {
+            subFolderPath += "/\(seasonNo)"
         }
         let folderURL = self.folderURL.appendingPathComponent(subFolderPath, isDirectory: true)
         
@@ -280,7 +234,7 @@ class CinemanaShowProcessor : CinemanaShowDelagate {
         if let dirEnum = FileManager.default.enumerator(atPath: folderURL.path) {
             
             while let fileName = dirEnum.nextObject() as? String {
-                var cinemanaShow : CinemanaShow? = nil
+                var cinemanaShow : EpisodeInfo? = nil
                 let fullPath = folderURL.appendingPathComponent(fileName, isDirectory: false)
                 
                 var encodedFileName = fullPath.lastPathComponent
@@ -317,43 +271,3 @@ class CinemanaShowProcessor : CinemanaShowDelagate {
         }
     }
 }
-
-
-extension CinemanaShow {
-    public func findAndFormatFileURL(fileName : String) -> String? {
-        let file = fileName as NSString
-        //let onlyfileName = file.deletingPathExtension
-        let fileExtension = file.pathExtension
-        let showName = enTitle.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        let seasonStr : String = {
-            if seasonNo < 10 {
-                return "S0\(seasonNo)"
-            }
-            else {
-                return "S\(seasonNo)"
-            }
-        }()
-        
-        let episodeStr : String = {
-            if episodeNo < 10 {
-                return "E0\(episodeNo)"
-            }
-            else {
-                return "E\(episodeNo)"
-            }
-        }()
-        
-        // if highestResolutionVideo?.transcoddedFileName == fileName || subtitle?.arTranslationFile == fileName {
-        
-        // for films
-        if (episodeNo == 0 && seasonNo == 0) {
-            return "\(showName).\(fileExtension)"
-        }
-        else {
-            return "\(showName).\(seasonStr)\(episodeStr).\(fileExtension)"
-        }
-        
-    }
-}
-
